@@ -1,5 +1,22 @@
-# powershell
-# dynamic resize of partitions on volumes
+#requires -version 4
+<#
+    .SYNOPSIS
+        Finds raw volumes, creates partitions.  Finds free space and allocates it to partitions.
+    .DESCRIPTION
+        This script is designed to find any offline disks, bring them
+        online, initialize\format the partitions and assign the next available
+        drive letter.
+
+        For free space found on an existing disk, it will grow the partition
+        utilizing all available free space.
+
+    .NOTES
+        Version:        1.0
+        Author:         Dusty Lane
+        Creation Date:  03/20/2020
+        Purpose/Change: Initial script development
+  
+#>
 
 # Get the disks
 
