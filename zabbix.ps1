@@ -53,7 +53,8 @@ Expand-Archive -Path $working_path\zabbix_template_sql.zip -DestinationPath $wor
 # ----------- zabbix agent install ----------- #
 
 
-Invoke-WebRequest -Uri https://www.zabbix.com/downloads/4.0.17/zabbix_agent-4.0.17-windows-amd64-openssl.msi -Outfile $working_path\zabbix_agent.msi 
+Invoke-WebRequest -Uri https://www.zabbix.com/downloads/3.0.29/zabbix_agent-3.0.29-windows-amd64-openssl.msi -Outfile $working_path\zabbix_agent.msi 
+#https://www.zabbix.com/downloads/4.0.17/zabbix_agent-4.0.17-windows-amd64-openssl.msi -Outfile $working_path\zabbix_agent.msi 
 Start-Process -FilePath msiexec.exe -ArgumentList "/I zabbix_agent.msi /qb SERVER=$($zbxsvr)" -Wait -Verb RunAs
 
 # ----------- zabbix agent update configuration ----------- #

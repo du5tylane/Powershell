@@ -33,7 +33,7 @@ Param(
 )
 
 # Testing - remove this line for 'regular use'.
-$vcenter = "172.16.2.183"
+# $vcenter = "172.16.2.183"
 
 if (test-path $ReportPath)
 {

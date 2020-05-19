@@ -110,7 +110,7 @@ if ($SQLServiceCheck)
     $Output = $Output + "######## SQL Version: $($SQLVer| Out-string)"
     $Output = $Output + "######## SQL Memory: $($SQLMem | Out-string)"
     $Output = $Output + "######## SQL DB Locations: $($SQLDBLocations | Out-string)"
-    $Output = $Output + "######## SQL Autogrow settings: $($SQLDBAutogrow | Out-string)"
+    $Output = $Output + "######## SQL datafile settings: $($SQLDBAutogrow | Out-string)"
 }
 #endregion SQLSettings
 
