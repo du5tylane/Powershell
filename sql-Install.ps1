@@ -1,0 +1,67 @@
+##################################
+##  SQL Install                 ##
+##################################
+
+#Region Parameters
+
+# The typical parameters that are changed are the paths - update below as necessary
+
+$SQLInstallFrom = "B:"
+$SQLUSERDBDIR="E:\MSSQL\Data"
+$SQLUSERDBLOGDIR="G:\MSSQL\Data"
+$SQLTEMPDBDIR="F:\MSSQL\Data"
+$SQLTEMPDBLOGDIR="H:\MSSQL\Data"
+$INSTANCEDIR="d:\Program Files\Microsoft SQL Server"
+$INSTALLSHAREDDIR="d:\Program Files\Microsoft SQL Server"
+$INSTALLSHAREDWOWDIR="d:\Program Files (x86)\Microsoft SQL Server"
+#EndRegion
+
+
+$configuration = @"
+;SQL Server 2017 Configuration File
+[OPTIONS]
+IAcceptSQLServerLicenseTerms="True"
+ACTION="Install"
+SUPPRESSPRIVACYSTATEMENTNOTICE="True"
+IACCEPTROPENLICENSETERMS="True"
+ENU="True"
+UpdateEnabled="False"
+FEATURES=SQLENGINE,REPLICATION,DQC,CONN,IS,BC,SDK,SNAC_SDK
+INSTANCENAME="MSSQLSERVER"
+INSTALLSHAREDDIR=$INSTALLSHAREDDIR
+INSTALLSHAREDWOWDIR=$INSTALLSHAREDWOWDIR
+INSTANCEID="MSSQLSERVER"
+SQLTELSVCACCT="NT Service\SQLTELEMETRY"
+SQLTELSVCSTARTUPTYPE="Automatic"
+ISTELSVCACCT="NT Service\SSISTELEMETRY140"
+ISTELSVCSTARTUPTYPE="Automatic"
+INSTANCEDIR=$INSTANCEDIR
+AGTSVCACCOUNT="NT Service\SQLSERVERAGENT"
+AGTSVCSTARTUPTYPE="Automatic"
+ISSVCSTARTUPTYPE="Automatic"
+ISSVCACCOUNT="NT Service\MsDtsServer140"
+SQLSVCSTARTUPTYPE="Automatic"
+FILESTREAMLEVEL="0"
+SQLCOLLATION="SQL_Latin1_General_CP1_CI_AS"
+SQLSVCACCOUNT="NT Service\MSSQLSERVER"
+SQLSVCINSTANTFILEINIT="True"
+SQLSYSADMINACCOUNTS="BUILTIN\Administrators"
+SECURITYMODE="SQL"
+SQLTEMPDBFILECOUNT="2"
+SQLTEMPDBFILESIZE="8"
+SQLTEMPDBFILEGROWTH="64"
+SQLTEMPDBLOGFILESIZE="8"
+SQLTEMPDBLOGFILEGROWTH="64"
+SQLUSERDBDIR=$SQLUSERDBDIR
+SQLUSERDBLOGDIR=$SQLUSERDBLOGDIR
+SQLTEMPDBDIR=$SQLTEMPDBDIR
+SQLTEMPDBLOGDIR=$SQLTEMPDBLOGDIR
+TCPENABLED="1"
+"@
+
+$configuration | Out-File -FilePath $env:temp\SQL_ConfigurationFile.INI -Encoding ascii -Force
+
+# Install SQL Server
+Invoke-Command -ScriptBlock {
+    Start-Process -FilePath "$($SQLInstallFrom)\setup.exe" -ArgumentList "/q /SAPWD='MySecurePW123!' /ConfigurationFile=$($env:temp)\SQL_ConfigurationFile.INI" -NoNewWindow -PassThru -Wait
+}

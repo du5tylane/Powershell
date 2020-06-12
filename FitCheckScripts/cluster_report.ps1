@@ -28,5 +28,5 @@ if (test-path c:\reports)
 $cluster_Name = get-cluster $ComputerName | select-object -expandproperty name
 start-process powershell.exe -ArgumentList "Test-Cluster $Cluster_Name -ReportName Cluster_$($cluster_Name) -Ignore Storage" -Wait
 
-Copy-Item "$($env:temp)\Cluster_$($cluster_Name).mht" -Destination c:\reports
+Copy-Item "$($env:temp)\Cluster_$($cluster_Name).*" -Destination c:\reports
 

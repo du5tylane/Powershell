@@ -8,11 +8,11 @@
 #  1.  sql binaries are on d:\sql2017
 
 # set location
-Set-Location C:\sql_2017_standard\customizations
+Set-Location c:\sqlsysprep
 
 # Install SQL with sysprep
 Invoke-Command {
-    c:\sql_2017_standard\setup.exe /qs /ACTION=PrepareImage /ConfigurationFile=c:\sql_2017_standard\customizations\imageprep_ConfigurationFile.INI /IACCEPTSQLSERVERLICENSETERMS
+    b:\setup.exe /qs /ACTION=PrepareImage /ConfigurationFile=c:\sqlsysprep\imageprep_ConfigurationFile.INI /IACCEPTSQLSERVERLICENSETERMS
 }
 
 Write-Host "Ctrl+C to break the script or press ENTER to continue"
