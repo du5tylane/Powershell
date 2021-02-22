@@ -58,7 +58,7 @@ $CoreInfo = (.\coreinfo.exe -n) + "`n"| Out-String
 $Memory = ((get-ciminstance -class "cim_physicalmemory" | % {$_.Capacity})/1024/1024) | out-string
 $TCPChimney = (cmd /c "netsh int tcp show global") | Out-String
 $SoftwareList = Get-WmiObject -Class Win32_Product | Format-Table Name, Version -AutoSize | out-string
-$DiskInfo = Get-WmiObject -ComputerName $ComputerName -Class Win32_Volume | Select-Object DriveLetter, Label, BlockSize, Capacity, Freespace | Format-Table -AutoSize | out-string
+$DiskInfo = Get-WmiObject -ComputerName $ComputerName -Class Win32_Volume | Select-Object Name, Label, BlockSize, Capacity, Freespace | Format-Table -AutoSize | out-string
 $nics = get-netadapter
 # Begin sifting throuh the objects and formatting to write to a txt file.
 $Output = $null
