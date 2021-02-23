@@ -19,14 +19,15 @@
 .NOTES
     Author:  Dusty Lane
     Created:  04/20/2020
-    Version:  0.5
+    Modified: 02/23/2021
+    Version:  0.6
 #>
 
 
 Param(
-    [Parameter(Mandatory=$false)]
+    [Parameter(Mandatory=$true)]
     [string]$ComputerName,
-    [Parameter(Mandatory=$false)]
+    [Parameter(Mandatory=$true)]
     [string]$vcenter,
     [Parameter(Mandatory=$false)]
     [string]$ReportPath = "c:\reports"
@@ -61,6 +62,8 @@ $Output = $null
 $Output = $VM | Format-Table Name,NumCpu,CoresPerSocket,MemoryGB,HardwareVersion,VMResourceConfiguration -AutoSize
 
 $Output = $Output + "######## CPU HotAdd Enabled`n $($vm.ExtensionData.config.CpuHotAddEnabled | out-string)"
+
+$Output = $Output + "######## Memory Reserved - Locked to max:  $($vm.ExtensionData.Config.MemoryReservationLockedToMax | out-string)"
 
 $GuestTools = $vm.ExtensionData.guest
 $Output = $Output + "######## Guest Tools`n $($GuestTools | Format-table ToolsStatus,ToolsVersion,ToolsVersionStatus,GuestFullName | out-string)"
