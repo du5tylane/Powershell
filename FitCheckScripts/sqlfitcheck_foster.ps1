@@ -15,9 +15,9 @@
     Author:  Matthew Foster 
     Co-Contributor Dusty Lane
     Created:  10/10/2020
-    Modified: 02/21/2021
+    Modified: 02/23/2021
     Notes:  Updated drive collection to get mount points.
-    Version:  1.2
+    Version:  1.3
 #>
 
 Param(
