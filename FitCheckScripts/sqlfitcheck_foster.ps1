@@ -121,9 +121,9 @@ Function Get-ComputerInfo {
     $bitlevel = $bitlevel.trim("-bit")
 
 
-$return.sockets = $sockets
-$return.Cores = $cores
-$return.bitlevel = $bitlevel
+$return.sockets = "Sockets: $sockets"
+$return.Cores = "Cores:  $cores"
+$return.bitlevel = "OS Bit Level:  $bitlevel"
 $return.diskinfo = $diskinfo
 $return.OS = $OS
 $return.Softwarelist = $SoftwareList
