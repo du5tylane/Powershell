@@ -12,11 +12,16 @@
         Note - An active directory account can not be used with the solarwinds API
         It must be a solarwinds 'sql' account.
 
+        All of the def_net* macros must be defined in the blueprint, in the script variables, and in
+        the script's switch block.
+
     .NOTES
         Version:        1.0.1
         Author:         Dusty Lane
         Creation Date:  03/25/2021
         Purpose/Change: add some error handling and change logic.
+    
+    .REQUIRE
   
 #>
 
