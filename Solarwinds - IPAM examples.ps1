@@ -1,60 +1,135 @@
+ #requires -version 4 -Module SwisPowerShell
  
-# Code sample for Solarwinds IPAM
-# requires solarwinds module - https://www.powershellgallery.com/packages/SwisPowerShell [powershellgallery.com]
-# the solarwinds rest api is not well documented, so the best solution
-# is to use the powershell commandlets and execute them from the
-# IPAM server.
-#
-# Note - An active directory account can not be used with the solarwinds API
-#        It must be a solarwinds 'sql' account.
-#
+<#
+    .SYNOPSIS
+        Code sample for Solarwinds IPAM
+    .DESCRIPTION
+        requires solarwinds module - https://www.powershellgallery.com/packages/SwisPowerShell
+        the solarwinds rest api is not well documented, so the best solution
+        is to use the powershell commandlets and execute them from the
+        IPAM server.
+
+        Note - An active directory account can not be used with the solarwinds API
+        It must be a solarwinds 'sql' account.
+
+    .NOTES
+        Version:        1.0.1
+        Author:         Dusty Lane
+        Creation Date:  03/25/2021
+        Purpose/Change: add some error handling and change logic.
+  
+#>
+
 
 $ErrorActionPreference = "Stop"
  
-#$network = "@@{network}@@"
-#$swhost = "@@{ipam_host}@@"
-#$swuser = "@@{ipam.username}@@"
-#$swpasswd = "@@{ipam.secret}@@"
+$network = "@@{network}@@"
+$swhost = "@@{ipam_host}@@"
+$swuser = "@@{ipam.username}@@"
+$swpasswd = "@@{ipam.secret}@@"
 $reservetime = "240" # in minutes
 
-# create 
-$swis = Connect-Swis -Hostname $swhost -UserName $swuser -Password $swpasswd
-
 # to minimize the amount of user input, we need to define
-# the network, mask, cidr and gateway variables.
+# the network, mask, and gateway variables.
 # We will need to define this for every network that we want to be able to provision 
-# virtual machines to.
+# virtual machines to.  Add to the switch loop.
 
+$def_net1 = "@@{def_net1}@@"
+$def_net1_mask = "@@{def_net1_mask}@@"
+$def_net1_gw = "@@{def_net1_gw}@@"
+$def_net2 = "@@{def_net2}@@"
+$def_net2_mask = "@@{def_net2_mask}@@"
+$def_net2_gw = "@@{def_net2_gw}@@"
+
+#------------------ no changes below here -----------#
+
+#region Functions
+
+Function Convert-IPInt64 { 
+ 
+    [CmdletBinding()]
+    Param(
+      [parameter(Mandatory=$true)]
+      [string]$IP
+      )
+ 
+    $IPSPLIT = $IP.Split('.') # IP to it's octets 
+ 
+    # Return 
+    [int64]([int64]$IPSPLIT[0] * 16777216 + 
+            [int64]$IPSPLIT[1] * 65536 + 
+            [int64]$IPSPLIT[2] * 256 + 
+            [int64]$IPSPLIT[3]) 
+} 
+ 
+Function Convert-SMtoCIDR
+{ 
+
+   [CmdletBinding()]
+    Param(
+      [parameter(Mandatory=$true)]
+      [string]$SUBNET_MASK
+      )
+ 
+    [int64]$SMINT64 = Convert-IPInt64 -IP $SUBNET_MASK 
+ 
+    $Cidr32Int = 2147483648 
+ 
+    $MaskCidr = 0 
+    for ($i = 0; $i -lt 32; $i++) 
+    { 
+        if (!($SMINT64 -band $Cidr32Int) -eq $Cidr32Int) { break } # Bitwise and operator - Same as "&" in C# 
+ 
+        $MaskCidr++ 
+        $Cidr32Int = $Cidr32Int -shr 1 
+    } 
+ 
+    # Return 
+    $MaskCidr 
+}
+test
+#endregion
+
+# using the swich block to create a powershell object to old the values.
 switch ($NETWORK)
 {
-    10.10.128.0
+    $def_net1
     {
-        $cidr = "23"
-        $mask = "255.255.254.0"
-        $gateway = "10.10.128.1"
+        $mask = $def_net1_mask
+        $gateway = $def_net1_gw
     }
-    10.10.130.0
+    $def_net2
     {
-        $cidr = "23"
-        $mask = "255.255.254.0"
-        $gateway = "10.10.130.1"
+        $mask = $def_net2_mask
+        $gateway = $def_net2_gw
     }
 }
 
-#------------------ no changes below here -----------#
+# create connection to the solarwinds ipam server
+$swis = Connect-Swis -Hostname $swhost -UserName $swuser -Password $swpasswd
+
+# using the subnet mask to generate the cidr.  cidr Code contributed by Matthew.Foster@nutanix.com
+$cidr = Convert-SMtoCIDR -SUBNET_MASK $NETWORK.mask
+
+# DNS & Ping Test to double check the reservation.  This may or maynot be needed depending on
+# how well the customer is leveraging their IPAM solution.
 $Test = $true
 while ($test -eq $true)
 {
-    # let's do some checks (ping and nslookup) to make sure that the IPs are truly available
-    $ip_address = Invoke-SwisVerb $swis IPAM.SubnetManagement StartIpReservation @("$network", "$cidr", "$reservetime") -Verbose | Select-Object -expand '#text'
-    # test-netconnection is really just a ping.
+    # do some checks (ping and nslookup) to make sure that the IPs are truly available
+    # get an IP from the IPAM
+    $ip_address = Invoke-SwisVerb $swis IPAM.SubnetManagement StartIpReservation @("$network", "$cidr", "$reservetime") -Verbose | 
+      Select-Object -expand '#text'
+    
+      # test-netconnection is really just a ping to the IP we received from the IPAM.
     $Test = Test-NetConnection -InformationLevel Quiet $ip_address -ErrorAction Continue
-    # if the ping fails, we need to check dns...
+    
+    # if the ping 'fails', the ip is not in use.  next step we need to check dns...
     if ($test -eq $false)
     {
         try
         {
-            # now let's check DNS with resolve-dns.  if this command errors, drop to catch.
+            # now let's check DNS with resolve-dns.  if this command errors, drop to catch block.
             # if it resolves successfully, let's reset the $test variable back to true 
             # and try again.
             Resolve-DnsName -Name $ip_address
@@ -72,7 +147,7 @@ while ($test -eq $true)
 
 try
 {
-    # we are putting this in a try catch - just because....
+    # we are putting this in a try catch - just because....  The current version of the API does not appear to throw error messages.
     $capture_ipam1 = Invoke-SwisVerb -SwisConnection $swis -EntityName IPAM.SubnetManagement -Verb ChangeIpStatus @($ip_address, "Blocked") -Verbose
     $capture_ipam2 = Invoke-SwisVerb -SwisConnection $swis -EntityName IPAM.SubnetManagement -Verb FinishIpReservation @($ip_address, "Reserved") -Verbose     
 }
